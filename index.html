@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ludofolio — browser games</title>
-  <meta name="description" content="Ludofolio — short original browser games. First release: Mood Rush." />
+  <meta name="description" content="Ludofolio — short original browser games. Mood Rush and Mood Rush Relics." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
@@ -245,15 +245,28 @@
 
     <header class="hero">
       <h1 class="brand">Ludofolio<span id="brandSub">遊びの作品集</span></h1>
-      <p class="lead" id="lead">短いオリジナルゲームを並べる場所。まずは感情が難易度になる一本から。</p>
+      <p class="lead" id="lead">短いオリジナルゲームを並べる場所。きぶんランと、その遺物版。</p>
       <div class="cta">
-        <a class="btn btn-main" href="games/mood-rush.html" id="ctaPlay">Mood Rush を遊ぶ</a>
+        <a class="btn btn-main" href="games/mood-rush-relics.html" id="ctaPlay">Relics を遊ぶ</a>
         <a class="btn btn-ghost" href="#now" id="ctaMore">公開中の作品</a>
       </div>
     </header>
 
     <section class="stage" id="now">
       <h2 id="nowLabel">公開中</h2>
+      <div class="games" style="display:grid;gap:14px">
+      <a class="game" href="games/mood-rush-relics.html">
+        <div class="preview" aria-hidden="true" style="background:radial-gradient(circle at 50% 70%, #c9b6ff44, transparent 40%),linear-gradient(180deg,#152038,#0a101c)">
+          <div class="gate a"></div>
+          <div class="gate b" style="filter:hue-rotate(40deg)"></div>
+          <div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,#c9b6ff 45%,#6a4aaa)"></div>
+        </div>
+        <div class="meta">
+          <div class="tag">ORIGINAL · RUN + RELICS</div>
+          <h3>Mood Rush Relics<small id="gameSub2">遺物ラン</small></h3>
+          <p id="gameDesc2">選ぶと走り方が変わる。死んだら遺物リセット。</p>
+        </div>
+      </a>
       <a class="game" href="games/mood-rush.html">
         <div class="preview" aria-hidden="true">
           <div class="gate a"></div>
@@ -266,6 +279,7 @@
           <p id="gameDesc">焦るほど道が狭くなる。深呼吸で落ち着いて、ベストを抜け。</p>
         </div>
       </a>
+      </div>
     </section>
 
     <footer class="foot" id="foot">© Ludofolio · original games only</footer>
@@ -275,22 +289,26 @@
     const I18N = {
       ja: {
         brandSub: "遊びの作品集",
-        lead: "短いオリジナルゲームを並べる場所。まずは感情が難易度になる一本から。",
-        ctaPlay: "Mood Rush を遊ぶ",
+        lead: "短いオリジナルゲームを並べる場所。きぶんランと、その遺物版。",
+        ctaPlay: "Relics を遊ぶ",
         ctaMore: "公開中の作品",
         nowLabel: "公開中",
         gameSub: "きぶんラン",
         gameDesc: "焦るほど道が狭くなる。深呼吸で落ち着いて、ベストを抜け。",
+        gameSub2: "遺物ラン",
+        gameDesc2: "選ぶと走り方が変わる。死んだら遺物リセット。",
         foot: "© Ludofolio · オリジナルのみ掲載",
       },
       en: {
         brandSub: "A FOLIO OF PLAY",
-        lead: "A shelf for short original browser games. First up: difficulty driven by your mood.",
-        ctaPlay: "Play Mood Rush",
+        lead: "Short original browser games — Mood Rush and its relic sequel.",
+        ctaPlay: "Play Relics",
         ctaMore: "Now playing",
         nowLabel: "NOW PLAYING",
         gameSub: "MOOD RUN",
         gameDesc: "Panic shrinks the path. Breathe, weave near-misses, beat your best.",
+        gameSub2: "RELIC RUN",
+        gameDesc2: "Relics rewrite the run. Death clears them — try another mix.",
         foot: "© Ludofolio · original games only",
       },
     };
@@ -305,6 +323,8 @@
       nowLabel.textContent = t.nowLabel;
       gameSub.textContent = t.gameSub;
       gameDesc.textContent = t.gameDesc;
+      gameSub2.textContent = t.gameSub2;
+      gameDesc2.textContent = t.gameDesc2;
       foot.textContent = t.foot;
       document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
     }

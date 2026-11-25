@@ -125,6 +125,11 @@
     }
     .pill b { color: var(--warn); }
     .pill.combo b { color: var(--calm); }
+    #multPill b { color: #ffe08a; }
+    #multPill.hot {
+      box-shadow: 0 0 16px #f0c14a55;
+      border-color: #f0c14a88;
+    }
     .mood-wrap {
       width: 100%;
       background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
@@ -324,6 +329,7 @@
           <div class="stats" id="hudStats">
             <div class="pill">SCORE <b id="scoreEl">0</b></div>
             <div class="pill combo">COMBO <b id="comboEl">0</b></div>
+            <div class="pill" id="multPill">×<b id="multEl">1.0</b></div>
             <div class="pill">BEST <b id="bestEl">0</b></div>
           </div>
           <div class="lang-mini" id="langMini" aria-label="language">
@@ -367,7 +373,7 @@
     ja: {
       brandSub: "きぶんラン",
       titleSub: "きぶんラン",
-      titleDesc: "焦るほど道が狭くなる。深呼吸で落ち着いて、ベストを更新しよう。スレスレ回避でコンボ。",
+      titleDesc: "序盤は安全に慣らして、スレスレでNEAR！と倍率を稼ぐ。黄玉は危険地帯のボーナス。",
       start: "はじめる",
       retry: "もう一回",
       result: "リザルト",
@@ -386,7 +392,7 @@
     en: {
       brandSub: "MOOD RUN",
       titleSub: "MOOD RUN",
-      titleDesc: "Panic shrinks the path. Breathe to calm down and beat your best. Near-misses build combo.",
+      titleDesc: "Warm up safe, then chase NEAR! multipliers. Yellow gems are risk bait for score.",
       start: "Play",
       retry: "Retry",
       result: "Result",
@@ -433,10 +439,13 @@
     score: 0,
     combo: 0,
     maxCombo: 0,
+    mult: 1,
     dist: 0,
     speed: 220,
     obstacles: [],
     particles: [],
+    floats: [],
+    gems: [],
     spawnAcc: 0,
     breatheCd: 0,
     breatheActive: 0,
@@ -444,6 +453,9 @@
     shake: 0,
     flash: 0,
     lanePulse: 0,
+    hitstop: 0,
+    safeT: 0,
+    phase: "safe",
     dead: false,
   };
 
@@ -521,14 +533,17 @@
 
   function resetRun() {
     g.x = 0.5;
-    g.mood = 26;
+    g.mood = 22;
     g.score = 0;
     g.combo = 0;
     g.maxCombo = 0;
+    g.mult = 1;
     g.dist = 0;
-    g.speed = 230;
+    g.speed = 210;
     g.obstacles = [];
     g.particles = [];
+    g.floats = [];
+    g.gems = [];
     g.spawnAcc = 0;
     g.breatheCd = 0;
     g.breatheActive = 0;
@@ -536,9 +551,30 @@
     g.shake = 0;
     g.flash = 0;
     g.lanePulse = 0;
+    g.hitstop = 0;
+    g.safeT = 12; // popular runners: ~10–18s before real danger
+    g.phase = "safe";
     g.dead = false;
-    // warm-up gap
     g.obstacles.push({ y: -H * 0.2, kind: "gap", w: 0, x: 0.5, scored: true });
+  }
+
+  function scoreMult() {
+    // Visible multiplier: survival alone is not optimal (runner design staple)
+    return 1 + Math.floor(g.combo / 2) * 0.5;
+  }
+
+  function pushFloat(x, y, text, color) {
+    g.floats.push({ x, y, text, color, life: 0.7, vy: -40 });
+  }
+
+  function currentPhase() {
+    if (g.safeT > 0) return "safe";
+    const d = g.dist;
+    const cycle = d % 90;
+    if (cycle < 28) return "build";
+    if (cycle < 48) return "peak";
+    if (cycle < 62) return "breath";
+    return "peak";
   }
 
   function startGame() {
@@ -585,43 +621,75 @@
   }
 
   function spawnObstacle() {
+    const phase = g.phase;
+    // Always leave a survivable route (runner best practice)
+    if (g.safeT > 0 || phase === "breath") {
+      // soft teach pattern: wide gap gate
+      g.obstacles.push({
+        y: -40,
+        kind: "gate",
+        gap: 0.48,
+        gapX: 0.35 + Math.random() * 0.3,
+        h: 14,
+        scored: false,
+        near: false,
+      });
+      if (Math.random() < 0.55) {
+        const corr = corridor();
+        g.gems.push({
+          y: -70,
+          x: 0.5 + (Math.random() - 0.5) * 0.35,
+          taken: false,
+          r: 7,
+        });
+      }
+      return;
+    }
+
     const roll = Math.random();
-    const corr = corridor();
-    if (roll < 0.55) {
-      // wall from one side
+    const peak = phase === "peak";
+    if (roll < 0.5) {
       const fromLeft = Math.random() < 0.5;
-      const cover = 0.35 + Math.random() * 0.28 + g.mood / 280;
+      const cover = (peak ? 0.42 : 0.32) + Math.random() * 0.22 + g.mood / 320;
       g.obstacles.push({
         y: -40,
         kind: "wall",
         fromLeft,
-        cover: Math.min(0.72, cover),
+        cover: Math.min(peak ? 0.68 : 0.62, cover),
         h: 18 + Math.random() * 10,
         scored: false,
         near: false,
       });
-    } else if (roll < 0.82) {
-      // floating block in corridor
+    } else if (roll < 0.78) {
       const x = 0.22 + Math.random() * 0.56;
       g.obstacles.push({
         y: -40,
         kind: "block",
         x,
-        w: 0.16 + Math.random() * 0.12 + g.mood / 500,
+        w: (peak ? 0.18 : 0.14) + Math.random() * 0.1 + g.mood / 550,
         h: 22,
         scored: false,
         near: false,
       });
     } else {
-      // twin gates
       g.obstacles.push({
         y: -40,
         kind: "gate",
-        gap: Math.max(0.18, 0.42 - g.mood / 280),
-        gapX: 0.3 + Math.random() * 0.4,
+        gap: Math.max(peak ? 0.2 : 0.24, 0.44 - g.mood / 300),
+        gapX: 0.28 + Math.random() * 0.44,
         h: 16,
         scored: false,
         near: false,
+      });
+    }
+
+    // Risk gem near the danger line (score chaser bait)
+    if (Math.random() < (peak ? 0.55 : 0.35)) {
+      g.gems.push({
+        y: -55,
+        x: 0.2 + Math.random() * 0.6,
+        taken: false,
+        r: 7,
       });
     }
   }
@@ -677,7 +745,7 @@
     const nx = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
     const ny = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
     const dist = Math.hypot(cx - nx, cy - ny);
-    return dist > r && dist < r + 16;
+    return dist > r && dist < r + 22;
   }
 
   function burst(x, y, color, n = 8) {
@@ -696,9 +764,14 @@
   }
 
   function updateHud() {
+    g.mult = scoreMult();
     scoreEl.textContent = String(Math.floor(g.score));
     comboEl.textContent = String(g.combo);
     bestEl.textContent = String(best);
+    const multEl = document.getElementById("multEl");
+    const multPill = document.getElementById("multPill");
+    if (multEl) multEl.textContent = g.mult.toFixed(1);
+    if (multPill) multPill.classList.toggle("hot", g.mult >= 2);
     moodFill.style.width = `${Math.min(100, Math.max(0, g.mood))}%`;
     updateMoodLabel();
   }
@@ -706,22 +779,31 @@
   function update(dt) {
     if (state !== "play" || g.dead) return;
 
+    if (g.hitstop > 0) {
+      g.hitstop = Math.max(0, g.hitstop - dt);
+      // keep float/particle life ticking lightly
+      for (const f of g.floats) f.life -= dt;
+      g.floats = g.floats.filter((f) => f.life > 0);
+      draw();
+      return;
+    }
+
     g.lanePulse += dt;
+    if (g.safeT > 0) g.safeT = Math.max(0, g.safeT - dt);
+    g.phase = currentPhase();
     if (g.shake > 0) g.shake = Math.max(0, g.shake - dt * 3);
     if (g.flash > 0) g.flash = Math.max(0, g.flash - dt * 4);
 
-    // movement
     let dir = 0;
     if (keys.left) dir -= 1;
     if (keys.right) dir += 1;
     if (touchDir) dir = touchDir;
-    const moveSp = 1.55 + (1 - g.mood / 100) * 0.35;
-    // breathe rebound slows control
+    const moveSp = 1.7 + (1 - g.mood / 100) * 0.4;
     const control = g.breatheCd > 0.55 ? 0.55 : 1;
     g.x = Math.min(0.98, Math.max(0.02, g.x + dir * moveSp * control * dt));
 
-    // mood natural drift toward mild tension while running
-    g.mood += 3.2 * dt;
+    const moodRise = g.phase === "breath" ? 1.4 : g.phase === "peak" ? 4.2 : 2.8;
+    g.mood += moodRise * dt;
     if (g.breatheActive > 0) {
       g.breatheActive -= dt;
       g.mood -= 55 * dt;
@@ -733,15 +815,20 @@
       updateBreatheLabel();
     }
 
-    // speed scales with distance and mild mood
-    g.speed = 230 + g.dist * 2.2 + g.mood * 0.55;
+    // Cap speed ramp; grow spacing with speed (keep reaction window humane)
+    g.speed = Math.min(420, 200 + g.dist * 1.6 + g.mood * 0.45 + (g.phase === "peak" ? 35 : 0));
+    if (g.phase === "breath") g.speed *= 0.82;
     const scroll = g.speed * dt;
     g.dist += scroll * 0.02;
-    g.score += (10 + g.combo * 1.8 + (100 - g.mood) * 0.04) * dt * 10;
+    const mult = scoreMult();
+    g.score += (12 + g.combo * 2.2) * mult * dt * 10;
 
-    // spawn rate rises with mood
     g.spawnAcc += dt;
-    const interval = Math.max(0.38, 0.95 - g.mood / 160 - g.dist / 900);
+    // spacing grows with speed so reaction time stays ~playable
+    const baseInterval = Math.max(0.42, 0.1 + (180 / g.speed));
+    let interval = baseInterval;
+    if (g.phase === "peak") interval *= 0.78;
+    if (g.phase === "breath" || g.safeT > 0) interval *= 1.35;
     if (g.spawnAcc >= interval) {
       g.spawnAcc = 0;
       spawnObstacle();
@@ -749,12 +836,26 @@
 
     const p = playerPos();
     const corr = corridor();
-
-    // walls of corridor also kill if squeezed somehow
     if (p.x - p.r < corr.left + 1 || p.x + p.r > corr.right - 1) {
-      // soft clamp instead of kill — keep inside
       g.x = Math.min(0.98, Math.max(0.02, g.x));
     }
+
+    // gems (risk reward)
+    for (const gem of g.gems) {
+      gem.y += scroll;
+      if (gem.taken) continue;
+      const gx = corr.left + gem.x * corr.width;
+      if (Math.hypot(p.x - gx, p.y - gem.y) < p.r + gem.r) {
+        gem.taken = true;
+        const gain = Math.floor(40 * mult);
+        g.score += gain;
+        g.combo += 1;
+        g.maxCombo = Math.max(g.maxCombo, g.combo);
+        pushFloat(gx, gem.y, `+${gain}`, "#ffe08a");
+        burst(gx, gem.y, "#ffe08a", 10);
+      }
+    }
+    g.gems = g.gems.filter((gem) => !gem.taken && gem.y < H + 40);
 
     for (const o of g.obstacles) {
       o.y += scroll;
@@ -763,7 +864,8 @@
       let hit = false;
       let near = false;
       for (const r of rects) {
-        if (circleRectHit(p.x, p.y, p.r * 0.9, r)) hit = true;
+        // Hitbox smaller than look (near-miss reads as skill)
+        if (circleRectHit(p.x, p.y, p.r * 0.78, r)) hit = true;
         if (nearMiss(p.x, p.y, p.r, r)) near = true;
       }
       if (hit) {
@@ -777,15 +879,19 @@
         o.near = true;
         g.combo += 1;
         g.maxCombo = Math.max(g.maxCombo, g.combo);
-        g.mood += 4.5;
-        g.score += 18 + g.combo * 6;
-        burst(p.x, p.y - 10, "#5ad0c8", 6);
+        g.mood += 3.5;
+        const gain = Math.floor((28 + g.combo * 10) * mult);
+        g.score += gain;
+        g.hitstop = 0.055;
+        pushFloat(p.x, p.y - 18, "NEAR!", "#7ef0e6");
+        pushFloat(p.x + 8, p.y - 36, `+${gain}`, "#ffe08a");
+        burst(p.x, p.y - 10, "#5ad0c8", 10);
+        g.lanePulse = 0;
       }
       if (!o.scored && o.y > p.y + 20) {
         o.scored = true;
         if (!o.near) {
-          // safe pass without near-miss gently calms
-          g.mood = Math.max(0, g.mood - 1.2);
+          g.mood = Math.max(0, g.mood - 1.6);
           g.combo = Math.max(0, g.combo - 1);
         }
       }
@@ -800,6 +906,12 @@
       pt.vy += 80 * dt;
     }
     g.particles = g.particles.filter((pt) => pt.life > 0);
+
+    for (const f of g.floats) {
+      f.life -= dt;
+      f.y += f.vy * dt;
+    }
+    g.floats = g.floats.filter((f) => f.life > 0);
 
     updateHud();
   }
@@ -941,6 +1053,33 @@
     ctx.globalAlpha = 1;
   }
 
+  function drawGems() {
+    const corr = corridor();
+    for (const gem of g.gems) {
+      if (gem.taken) continue;
+      const gx = corr.left + gem.x * corr.width;
+      ctx.beginPath();
+      ctx.fillStyle = "#ffe08a";
+      ctx.shadowColor = "#f0c14a";
+      ctx.shadowBlur = 12;
+      ctx.arc(gx, gem.y, gem.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function drawFloats() {
+    for (const f of g.floats) {
+      ctx.globalAlpha = Math.max(0, f.life * 1.4);
+      ctx.fillStyle = f.color;
+      ctx.font = `800 ${f.text === "NEAR!" ? 18 : 14}px Outfit, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText(f.text, f.x, f.y);
+    }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = "left";
+  }
+
   function draw() {
     ctx.save();
     if (g.shake > 0) {
@@ -951,8 +1090,10 @@
     if (state === "play" || state === "result") {
       drawCorridor();
       drawObstacles();
+      drawGems();
       drawPlayer();
       drawParticles();
+      drawFloats();
     } else {
       // idle preview corridor
       g.mood = 30 + Math.sin(performance.now() / 900) * 18;
