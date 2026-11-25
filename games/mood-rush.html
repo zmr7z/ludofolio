@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Mood Rush — きぶんラン</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #0c1220;
+      --bg1: #152038;
+      --ink: #e8eef8;
+      --muted: #8b9bb8;
+      --calm: #5ad0c8;
+      --warn: #f0c14a;
+      --hot: #e8453c;
+      --panel: #121a2ccc;
+      --line: #2a3a5588;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg0);
+      color: var(--ink);
+      font-family: "Zen Kaku Gothic New", "Outfit", sans-serif;
+      overflow: hidden;
+      user-select: none;
+      touch-action: none;
+      -webkit-user-select: none;
+    }
+    body {
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(ellipse 70% 45% at 50% 0%, #1a3058, transparent),
+        radial-gradient(ellipse 50% 40% at 85% 100%, #2a1830, transparent),
+        var(--bg0);
+    }
+    #wrap {
+      position: relative;
+      width: min(100vw, 420px);
+      height: min(100dvh, 740px);
+      border: 1px solid #2a3548;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px #000a, 0 0 0 1px #ffffff08;
+      background: #0a0e18;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+    #ui {
+      position: absolute; inset: 0; pointer-events: none; z-index: 5;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 12px 14px 14px;
+    }
+    .chrome-top {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+    }
+    .brand {
+      font-family: "Outfit", sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 10px #000a;
+    }
+    .brand small {
+      display: block;
+      font-family: "Zen Kaku Gothic New", sans-serif;
+      font-weight: 500;
+      font-size: 11px;
+      color: var(--calm);
+      opacity: 0.9;
+      margin-top: 2px;
+      letter-spacing: 0.12em;
+    }
+    .lang {
+      pointer-events: auto;
+      display: flex; gap: 4px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+      backdrop-filter: blur(8px);
+    }
+    .lang button {
+      border: 0; background: transparent; color: var(--muted);
+      font-family: "Outfit", sans-serif; font-weight: 700; font-size: 11px;
+      padding: 5px 9px; border-radius: 999px; cursor: pointer;
+    }
+    .lang button.on { background: #243352; color: #fff; }
+    .chrome-bottom {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      background: linear-gradient(180deg, transparent, #0a0e18f2 28%);
+      margin: 0 -14px -14px;
+      padding: 28px 14px 14px;
+    }
+    #wrap.is-playing #ui { justify-content: flex-end; }
+    #wrap.is-playing .chrome-top {
+      display: none !important;
+      visibility: hidden;
+      height: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #wrap.is-playing .chrome-bottom {
+      display: flex;
+      width: 100%;
+    }
+    .hud-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .stats {
+      display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    }
+    .pill {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+      padding: 5px 10px; font-family: "Outfit", monospace; font-size: 12px;
+      backdrop-filter: blur(8px);
+    }
+    .pill b { color: var(--warn); }
+    .pill.combo b { color: var(--calm); }
+    .mood-wrap {
+      width: 100%;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      padding: 7px 10px; backdrop-filter: blur(8px);
+    }
+    .mood-label {
+      display: flex; justify-content: space-between; font-size: 11px; color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .mood-label strong { color: var(--ink); font-weight: 700; }
+    .mood-bar {
+      height: 7px; border-radius: 99px; background: #1a2234; overflow: hidden;
+      border: 1px solid #3a4a62;
+    }
+    .mood-bar > i {
+      display: block; height: 100%; width: 30%;
+      background: linear-gradient(90deg, var(--calm), var(--warn), var(--hot));
+      border-radius: 99px;
+      transition: width 0.08s linear;
+    }
+    .hint {
+      display: none; /* title explains controls; keep fall path + bottom clear */
+      font-size: 11px; line-height: 1.45; color: #b8c0d0;
+      background: #0b1020aa; border: 1px solid #ffffff10; border-radius: 10px;
+      padding: 8px 10px; max-width: 58%;
+    }
+    .breathe {
+      pointer-events: auto;
+      border: 0; cursor: pointer;
+      min-width: 108px; min-height: 48px;
+      border-radius: 14px;
+      font-family: "Zen Kaku Gothic New", "Outfit", sans-serif;
+      font-weight: 800; font-size: 14px; color: #06201e;
+      background: linear-gradient(180deg, #7ef0e6, #3bbdb4);
+      box-shadow: 0 8px 24px #5ad0c855, inset 0 1px 0 #ffffff55;
+      flex-shrink: 0;
+    }
+    .breathe:disabled {
+      opacity: 0.45; cursor: default; box-shadow: none;
+      background: #3a4a62; color: #9aa8c0;
+    }
+    .breathe.cooling {
+      background: linear-gradient(180deg, #f0c14a, #d4922a); color: #2a1a00;
+    }
+    .lang-mini {
+      pointer-events: auto;
+      display: none;
+      gap: 2px;
+      align-self: center;
+    }
+    #wrap.is-playing .lang-mini { display: flex; }
+    .lang-mini button {
+      border: 0; background: #121a2caa; color: var(--muted);
+      font-family: "Outfit", sans-serif; font-weight: 700; font-size: 10px;
+      padding: 4px 7px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--line);
+    }
+    .lang-mini button.on { background: #243352; color: #fff; }
+    .overlay {
+      position: absolute; inset: 0; z-index: 10;
+      display: grid; place-items: center;
+      background: #0a0e18ee;
+      padding: 24px;
+      text-align: center;
+    }
+    .overlay.hidden { display: none; }
+    .card {
+      width: min(100%, 320px);
+      background: linear-gradient(180deg, #152038, #101828);
+      border: 1px solid #2a3a55;
+      border-radius: 18px;
+      padding: 28px 22px 22px;
+      box-shadow: 0 20px 60px #0008;
+    }
+    .card h1 {
+      font-family: "Outfit", sans-serif;
+      font-weight: 800; font-size: 34px; letter-spacing: 0.02em;
+      background: linear-gradient(180deg, #fff, #9adfd9);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .card .sub {
+      margin-top: 6px; color: var(--calm); font-size: 13px; letter-spacing: 0.16em;
+      font-weight: 700;
+    }
+    .card p {
+      margin: 16px 0 20px; color: var(--muted); font-size: 13px; line-height: 1.6;
+    }
+    .card .big {
+      font-family: "Outfit", sans-serif; font-size: 42px; font-weight: 800; color: var(--warn);
+      margin: 8px 0 4px;
+    }
+    .card .row {
+      display: flex; justify-content: center; gap: 18px; margin-bottom: 18px;
+      font-size: 13px; color: var(--muted);
+    }
+    .card .row b { color: var(--ink); font-family: "Outfit", sans-serif; }
+    .delta {
+      color: var(--calm); font-size: 12px; margin-bottom: 14px; min-height: 1.2em;
+    }
+    .delta.miss { color: var(--hot); }
+    .btn {
+      pointer-events: auto;
+      width: 100%; border: 0; cursor: pointer;
+      padding: 14px 16px; border-radius: 12px;
+      font-family: "Zen Kaku Gothic New", "Outfit", sans-serif;
+      font-weight: 800; font-size: 16px; color: #061018;
+      background: linear-gradient(180deg, #ffe08a, #f0c14a);
+      box-shadow: 0 10px 28px #f0c14a44;
+    }
+    .btn:active { transform: translateY(1px); }
+    .back {
+      display: inline-block;
+      margin-top: 16px;
+      color: #8b9bb8;
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      font-family: "Outfit", sans-serif;
+      font-weight: 700;
+      pointer-events: auto;
+    }
+    .back:hover { color: #5ad0c8; }
+    #touch {
+      position: absolute; inset: 0; z-index: 4; pointer-events: none;
+    }
+    #touch.active { pointer-events: auto; }
+    .touch-zone {
+      position: absolute; top: 18%; bottom: 18%; width: 42%;
+    }
+    .touch-zone.left { left: 0; }
+    .touch-zone.right { right: 0; }
+
+    /* PC: bottom HUD only, keep fall path clear */
+    @media (hover: hover) and (pointer: fine) {
+      #wrap {
+        width: min(100vw, 400px);
+        height: min(100dvh, 700px);
+      }
+      #wrap.is-playing .pill {
+        padding: 3px 8px;
+        font-size: 11px;
+        background: #0b102099;
+        backdrop-filter: none;
+      }
+      #wrap.is-playing .mood-wrap {
+        padding: 5px 8px;
+        background: #0b102099;
+        backdrop-filter: none;
+      }
+      #wrap.is-playing .mood-label { font-size: 10px; margin-bottom: 3px; }
+      #wrap.is-playing .mood-bar { height: 5px; }
+      #wrap.is-playing .breathe {
+        min-width: 84px;
+        min-height: 40px;
+        border-radius: 10px;
+        font-size: 12px;
+        box-shadow: 0 4px 14px #5ad0c833;
+      }
+      #wrap.is-playing .breathe .keyhint {
+        display: block;
+        font-size: 9px;
+        font-weight: 700;
+        opacity: 0.75;
+        margin-top: 1px;
+        font-family: "Outfit", sans-serif;
+        letter-spacing: 0.06em;
+      }
+      #touch { display: none !important; }
+    }
+    .breathe .keyhint { display: none; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="c"></canvas>
+    <div id="touch">
+      <div class="touch-zone left" data-dir="-1"></div>
+      <div class="touch-zone right" data-dir="1"></div>
+    </div>
+    <div id="ui">
+      <div class="chrome-top" id="chromeTop">
+        <div class="brand">Mood Rush<small id="brandSub">きぶんラン</small></div>
+        <div class="lang" id="langTop" aria-label="language">
+          <button type="button" data-lang="ja" class="on">JA</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+      </div>
+      <div class="chrome-bottom" id="chromeBottom">
+        <div class="mood-wrap" id="moodHud">
+          <div class="mood-label">
+            <span id="moodLabel">きぶん</span>
+            <strong id="moodText">冷静</strong>
+          </div>
+          <div class="mood-bar"><i id="moodFill"></i></div>
+        </div>
+        <div class="hud-row">
+          <div class="stats" id="hudStats">
+            <div class="pill">SCORE <b id="scoreEl">0</b></div>
+            <div class="pill combo">COMBO <b id="comboEl">0</b></div>
+            <div class="pill">BEST <b id="bestEl">0</b></div>
+          </div>
+          <div class="lang-mini" id="langMini" aria-label="language">
+            <button type="button" data-lang="ja" class="on">JA</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+          <div class="hint" id="hintEl"></div>
+          <button type="button" class="breathe" id="breatheBtn"><span id="breatheLabel">深呼吸</span><span class="keyhint">SPACE</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="titleScreen">
+      <div class="card">
+        <h1>Mood Rush</h1>
+        <div class="sub" id="titleSub">きぶんラン</div>
+        <p id="titleDesc"></p>
+        <button type="button" class="btn" id="startBtn">はじめる</button>
+        <a class="back" href="../index.html" id="backLink">← Ludofolio</a>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="resultScreen">
+      <div class="card">
+        <div class="sub" id="resultTitle">リザルト</div>
+        <div class="big" id="resultScore">0</div>
+        <div class="row">
+          <span>BEST <b id="resultBest">0</b></span>
+          <span>COMBO <b id="resultCombo">0</b></span>
+        </div>
+        <div class="delta" id="resultDelta"></div>
+        <button type="button" class="btn" id="retryBtn">もう一回</button>
+        <a class="back" href="../index.html" id="backLink2">← Ludofolio</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+(() => {
+  const I18N = {
+    ja: {
+      brandSub: "きぶんラン",
+      titleSub: "きぶんラン",
+      titleDesc: "焦るほど道が狭くなる。深呼吸で落ち着いて、ベストを更新しよう。スレスレ回避でコンボ。",
+      start: "はじめる",
+      retry: "もう一回",
+      result: "リザルト",
+      mood: "きぶん",
+      moodCalm: "冷静",
+      moodOk: "ふつう",
+      moodHot: "焦り",
+      moodPanic: "パニック",
+      breathe: "深呼吸",
+      breatheCool: "反動中",
+      hint: "← → / スワイプで移動\n危ないほど加点。深呼吸で冷静に。",
+      bestDelta: (n) => `ベストまであと ${n}`,
+      newBest: "ベスト更新！",
+      sameBest: "ベストと同点",
+    },
+    en: {
+      brandSub: "MOOD RUN",
+      titleSub: "MOOD RUN",
+      titleDesc: "Panic shrinks the path. Breathe to calm down and beat your best. Near-misses build combo.",
+      start: "Play",
+      retry: "Retry",
+      result: "Result",
+      mood: "Mood",
+      moodCalm: "Calm",
+      moodOk: "Steady",
+      moodHot: "Tense",
+      moodPanic: "Panic",
+      breathe: "Breathe",
+      breatheCool: "Rebound",
+      hint: "← → / swipe to move\nNear-miss = points. Breathe to calm.",
+      bestDelta: (n) => `${n} to beat best`,
+      newBest: "New best!",
+      sameBest: "Tied best",
+    },
+  };
+
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const wrap = document.getElementById("wrap");
+  const titleScreen = document.getElementById("titleScreen");
+  const resultScreen = document.getElementById("resultScreen");
+  const touchLayer = document.getElementById("touch");
+  const breatheBtn = document.getElementById("breatheBtn");
+  const scoreEl = document.getElementById("scoreEl");
+  const comboEl = document.getElementById("comboEl");
+  const bestEl = document.getElementById("bestEl");
+  const moodFill = document.getElementById("moodFill");
+  const moodText = document.getElementById("moodText");
+  const moodLabel = document.getElementById("moodLabel");
+  const hintEl = document.getElementById("hintEl");
+
+  let lang = localStorage.getItem("moodrush_lang") || localStorage.getItem("ludofolio_lang") || localStorage.getItem("pulselab_lang") || "ja";
+  let best = Number(localStorage.getItem("moodrush_best") || 0);
+  let W = 420, H = 740, dpr = 1;
+  let state = "title"; // title | play | result
+  let last = 0;
+  let keys = { left: false, right: false };
+  let touchDir = 0;
+
+  const g = {
+    x: 0.5,
+    mood: 28,
+    score: 0,
+    combo: 0,
+    maxCombo: 0,
+    dist: 0,
+    speed: 220,
+    obstacles: [],
+    particles: [],
+    spawnAcc: 0,
+    breatheCd: 0,
+    breatheActive: 0,
+    breatheStacks: 0,
+    shake: 0,
+    flash: 0,
+    lanePulse: 0,
+    dead: false,
+  };
+
+  function t(key) {
+    const pack = I18N[lang] || I18N.ja;
+    return pack[key];
+  }
+
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.getElementById("brandSub").textContent = t("brandSub");
+    document.getElementById("titleSub").textContent = t("titleSub");
+    document.getElementById("titleDesc").textContent = t("titleDesc");
+    document.getElementById("startBtn").textContent = t("start");
+    document.getElementById("retryBtn").textContent = t("retry");
+    document.getElementById("resultTitle").textContent = t("result");
+    moodLabel.textContent = t("mood");
+    hintEl.textContent = t("hint");
+    updateBreatheLabel();
+    document.querySelectorAll(".lang button, .lang-mini button").forEach((b) => {
+      b.classList.toggle("on", b.dataset.lang === lang);
+    });
+    updateMoodLabel();
+  }
+
+  function updateBreatheLabel() {
+    const label = document.getElementById("breatheLabel");
+    if (g.breatheCd > 0) {
+      label.textContent = t("breatheCool");
+      breatheBtn.classList.add("cooling");
+      breatheBtn.disabled = true;
+    } else {
+      label.textContent = t("breathe");
+      breatheBtn.classList.remove("cooling");
+      breatheBtn.disabled = state !== "play";
+    }
+  }
+
+  function setPlayingUi(on) {
+    wrap.classList.toggle("is-playing", on);
+  }
+
+  function updateMoodLabel() {
+    const m = g.mood;
+    let label = t("moodCalm");
+    if (m >= 78) label = t("moodPanic");
+    else if (m >= 55) label = t("moodHot");
+    else if (m >= 35) label = t("moodOk");
+    moodText.textContent = label;
+  }
+
+  function resize() {
+    const rect = wrap.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(1, Math.floor(rect.width));
+    H = Math.max(1, Math.floor(rect.height));
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function laneWidth() {
+    // mood high -> narrower playable corridor
+    const t01 = Math.min(1, Math.max(0, g.mood / 100));
+    const minW = W * 0.34;
+    const maxW = W * 0.78;
+    return maxW - (maxW - minW) * Math.pow(t01, 1.15);
+  }
+
+  function corridor() {
+    const lw = laneWidth();
+    const cx = W * 0.5;
+    return { left: cx - lw / 2, right: cx + lw / 2, width: lw };
+  }
+
+  function resetRun() {
+    g.x = 0.5;
+    g.mood = 26;
+    g.score = 0;
+    g.combo = 0;
+    g.maxCombo = 0;
+    g.dist = 0;
+    g.speed = 230;
+    g.obstacles = [];
+    g.particles = [];
+    g.spawnAcc = 0;
+    g.breatheCd = 0;
+    g.breatheActive = 0;
+    g.breatheStacks = 0;
+    g.shake = 0;
+    g.flash = 0;
+    g.lanePulse = 0;
+    g.dead = false;
+    // warm-up gap
+    g.obstacles.push({ y: -H * 0.2, kind: "gap", w: 0, x: 0.5, scored: true });
+  }
+
+  function startGame() {
+    resetRun();
+    state = "play";
+    titleScreen.classList.add("hidden");
+    resultScreen.classList.add("hidden");
+    touchLayer.classList.add("active");
+    setPlayingUi(true);
+    bestEl.textContent = String(best);
+    updateHud();
+    updateBreatheLabel();
+  }
+
+  function endGame() {
+    if (g.dead) return;
+    g.dead = true;
+    state = "result";
+    touchLayer.classList.remove("active");
+    setPlayingUi(false);
+    const score = Math.floor(g.score);
+    const prev = best;
+    let deltaText = "";
+    let deltaClass = "";
+    if (score > best) {
+      best = score;
+      localStorage.setItem("moodrush_best", String(best));
+      deltaText = t("newBest");
+      deltaClass = "";
+    } else if (score === best && score > 0) {
+      deltaText = t("sameBest");
+    } else {
+      deltaText = t("bestDelta")(Math.max(0, best - score));
+      deltaClass = "miss";
+    }
+    document.getElementById("resultScore").textContent = String(score);
+    document.getElementById("resultBest").textContent = String(best);
+    document.getElementById("resultCombo").textContent = String(g.maxCombo);
+    const deltaEl = document.getElementById("resultDelta");
+    deltaEl.textContent = deltaText;
+    deltaEl.className = "delta" + (deltaClass ? " " + deltaClass : "");
+    resultScreen.classList.remove("hidden");
+    updateBreatheLabel();
+  }
+
+  function spawnObstacle() {
+    const roll = Math.random();
+    const corr = corridor();
+    if (roll < 0.55) {
+      // wall from one side
+      const fromLeft = Math.random() < 0.5;
+      const cover = 0.35 + Math.random() * 0.28 + g.mood / 280;
+      g.obstacles.push({
+        y: -40,
+        kind: "wall",
+        fromLeft,
+        cover: Math.min(0.72, cover),
+        h: 18 + Math.random() * 10,
+        scored: false,
+        near: false,
+      });
+    } else if (roll < 0.82) {
+      // floating block in corridor
+      const x = 0.22 + Math.random() * 0.56;
+      g.obstacles.push({
+        y: -40,
+        kind: "block",
+        x,
+        w: 0.16 + Math.random() * 0.12 + g.mood / 500,
+        h: 22,
+        scored: false,
+        near: false,
+      });
+    } else {
+      // twin gates
+      g.obstacles.push({
+        y: -40,
+        kind: "gate",
+        gap: Math.max(0.18, 0.42 - g.mood / 280),
+        gapX: 0.3 + Math.random() * 0.4,
+        h: 16,
+        scored: false,
+        near: false,
+      });
+    }
+  }
+
+  function playerRadius() {
+    return Math.max(10, Math.min(14, W * 0.032));
+  }
+
+  function playerPos() {
+    const corr = corridor();
+    const px = corr.left + g.x * corr.width;
+    // keep player above bottom HUD
+    const py = H * 0.58;
+    return { x: px, y: py, r: playerRadius() };
+  }
+
+  function obstacleRects(o) {
+    const corr = corridor();
+    const rects = [];
+    if (o.kind === "wall") {
+      const w = corr.width * o.cover;
+      if (o.fromLeft) {
+        rects.push({ x: corr.left, y: o.y, w, h: o.h });
+      } else {
+        rects.push({ x: corr.right - w, y: o.y, w, h: o.h });
+      }
+    } else if (o.kind === "block") {
+      const w = corr.width * o.w;
+      const x = corr.left + o.x * corr.width - w / 2;
+      rects.push({ x, y: o.y, w, h: o.h });
+    } else if (o.kind === "gate") {
+      const gapW = corr.width * o.gap;
+      const gapCx = corr.left + o.gapX * corr.width;
+      const gapL = gapCx - gapW / 2;
+      const gapR = gapCx + gapW / 2;
+      rects.push({ x: corr.left, y: o.y, w: Math.max(0, gapL - corr.left), h: o.h });
+      rects.push({ x: gapR, y: o.y, w: Math.max(0, corr.right - gapR), h: o.h });
+    }
+    return rects;
+  }
+
+  function circleRectHit(cx, cy, r, rect) {
+    if (rect.w <= 0 || rect.h <= 0) return false;
+    const nx = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+    const ny = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+    const dx = cx - nx;
+    const dy = cy - ny;
+    return dx * dx + dy * dy < r * r;
+  }
+
+  function nearMiss(cx, cy, r, rect) {
+    if (rect.w <= 0) return false;
+    const nx = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+    const ny = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+    const dist = Math.hypot(cx - nx, cy - ny);
+    return dist > r && dist < r + 16;
+  }
+
+  function burst(x, y, color, n = 8) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 40 + Math.random() * 120;
+      g.particles.push({
+        x, y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        life: 0.35 + Math.random() * 0.35,
+        color,
+        size: 2 + Math.random() * 3,
+      });
+    }
+  }
+
+  function updateHud() {
+    scoreEl.textContent = String(Math.floor(g.score));
+    comboEl.textContent = String(g.combo);
+    bestEl.textContent = String(best);
+    moodFill.style.width = `${Math.min(100, Math.max(0, g.mood))}%`;
+    updateMoodLabel();
+  }
+
+  function update(dt) {
+    if (state !== "play" || g.dead) return;
+
+    g.lanePulse += dt;
+    if (g.shake > 0) g.shake = Math.max(0, g.shake - dt * 3);
+    if (g.flash > 0) g.flash = Math.max(0, g.flash - dt * 4);
+
+    // movement
+    let dir = 0;
+    if (keys.left) dir -= 1;
+    if (keys.right) dir += 1;
+    if (touchDir) dir = touchDir;
+    const moveSp = 1.55 + (1 - g.mood / 100) * 0.35;
+    // breathe rebound slows control
+    const control = g.breatheCd > 0.55 ? 0.55 : 1;
+    g.x = Math.min(0.98, Math.max(0.02, g.x + dir * moveSp * control * dt));
+
+    // mood natural drift toward mild tension while running
+    g.mood += 3.2 * dt;
+    if (g.breatheActive > 0) {
+      g.breatheActive -= dt;
+      g.mood -= 55 * dt;
+    }
+    g.mood = Math.min(100, Math.max(0, g.mood));
+
+    if (g.breatheCd > 0) {
+      g.breatheCd = Math.max(0, g.breatheCd - dt);
+      updateBreatheLabel();
+    }
+
+    // speed scales with distance and mild mood
+    g.speed = 230 + g.dist * 2.2 + g.mood * 0.55;
+    const scroll = g.speed * dt;
+    g.dist += scroll * 0.02;
+    g.score += (10 + g.combo * 1.8 + (100 - g.mood) * 0.04) * dt * 10;
+
+    // spawn rate rises with mood
+    g.spawnAcc += dt;
+    const interval = Math.max(0.38, 0.95 - g.mood / 160 - g.dist / 900);
+    if (g.spawnAcc >= interval) {
+      g.spawnAcc = 0;
+      spawnObstacle();
+    }
+
+    const p = playerPos();
+    const corr = corridor();
+
+    // walls of corridor also kill if squeezed somehow
+    if (p.x - p.r < corr.left + 1 || p.x + p.r > corr.right - 1) {
+      // soft clamp instead of kill — keep inside
+      g.x = Math.min(0.98, Math.max(0.02, g.x));
+    }
+
+    for (const o of g.obstacles) {
+      o.y += scroll;
+      if (o.kind === "gap") continue;
+      const rects = obstacleRects(o);
+      let hit = false;
+      let near = false;
+      for (const r of rects) {
+        if (circleRectHit(p.x, p.y, p.r * 0.9, r)) hit = true;
+        if (nearMiss(p.x, p.y, p.r, r)) near = true;
+      }
+      if (hit) {
+        g.shake = 0.45;
+        g.flash = 0.35;
+        burst(p.x, p.y, "#e8453c", 16);
+        endGame();
+        return;
+      }
+      if (near && !o.near && o.y < p.y && o.y + 30 > p.y - 40) {
+        o.near = true;
+        g.combo += 1;
+        g.maxCombo = Math.max(g.maxCombo, g.combo);
+        g.mood += 4.5;
+        g.score += 18 + g.combo * 6;
+        burst(p.x, p.y - 10, "#5ad0c8", 6);
+      }
+      if (!o.scored && o.y > p.y + 20) {
+        o.scored = true;
+        if (!o.near) {
+          // safe pass without near-miss gently calms
+          g.mood = Math.max(0, g.mood - 1.2);
+          g.combo = Math.max(0, g.combo - 1);
+        }
+      }
+    }
+
+    g.obstacles = g.obstacles.filter((o) => o.y < H + 60);
+
+    for (const pt of g.particles) {
+      pt.life -= dt;
+      pt.x += pt.vx * dt;
+      pt.y += pt.vy * dt;
+      pt.vy += 80 * dt;
+    }
+    g.particles = g.particles.filter((pt) => pt.life > 0);
+
+    updateHud();
+  }
+
+  function drawBackground() {
+    const moodT = g.mood / 100;
+    const top = lerpColor([12, 18, 32], [42, 16, 28], moodT);
+    const bot = lerpColor([18, 32, 56], [48, 20, 24], moodT);
+    const grd = ctx.createLinearGradient(0, 0, 0, H);
+    grd.addColorStop(0, rgb(top));
+    grd.addColorStop(1, rgb(bot));
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+
+    // floating motes
+    ctx.fillStyle = `rgba(255,255,255,${0.04 + moodT * 0.03})`;
+    for (let i = 0; i < 18; i++) {
+      const yy = ((i * 97 + g.dist * 8) % (H + 40)) - 20;
+      const xx = (i * 53) % W;
+      ctx.beginPath();
+      ctx.arc(xx, yy, 1.5 + (i % 3), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function lerpColor(a, b, t01) {
+    return [
+      a[0] + (b[0] - a[0]) * t01,
+      a[1] + (b[1] - a[1]) * t01,
+      a[2] + (b[2] - a[2]) * t01,
+    ];
+  }
+  function rgb(c) {
+    return `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+  }
+
+  function drawCorridor() {
+    const corr = corridor();
+    const moodT = g.mood / 100;
+    // outside darkness
+    ctx.fillStyle = `rgba(0,0,0,${0.35 + moodT * 0.25})`;
+    ctx.fillRect(0, 0, corr.left, H);
+    ctx.fillRect(corr.right, 0, W - corr.right, H);
+
+    // path
+    const pathGrad = ctx.createLinearGradient(corr.left, 0, corr.right, 0);
+    pathGrad.addColorStop(0, `rgba(90,208,200,${0.06})`);
+    pathGrad.addColorStop(0.5, `rgba(255,255,255,${0.04})`);
+    pathGrad.addColorStop(1, `rgba(232,69,60,${0.05 + moodT * 0.08})`);
+    ctx.fillStyle = pathGrad;
+    ctx.fillRect(corr.left, 0, corr.width, H);
+
+    // edges
+    ctx.strokeStyle = moodT > 0.6 ? `rgba(232,69,60,${0.55})` : `rgba(90,208,200,${0.45})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(corr.left, 0);
+    ctx.lineTo(corr.left, H);
+    ctx.moveTo(corr.right, 0);
+    ctx.lineTo(corr.right, H);
+    ctx.stroke();
+
+    // dashed center rhythm
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.setLineDash([10, 14]);
+    ctx.lineWidth = 2;
+    const ox = (g.dist * 12) % 24;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.5, -ox);
+    ctx.lineTo(W * 0.5, H);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function drawObstacles() {
+    const moodT = g.mood / 100;
+    for (const o of g.obstacles) {
+      if (o.kind === "gap") continue;
+      const rects = obstacleRects(o);
+      for (const r of rects) {
+        if (r.w <= 0) continue;
+        const grd = ctx.createLinearGradient(r.x, r.y, r.x, r.y + r.h);
+        grd.addColorStop(0, moodT > 0.55 ? "#ff6b5a" : "#7adfd6");
+        grd.addColorStop(1, moodT > 0.55 ? "#a82828" : "#2a7a84");
+        ctx.fillStyle = grd;
+        roundRect(r.x, r.y, r.w, r.h, 6);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.18)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+
+  function roundRect(x, y, w, h, rad) {
+    const r = Math.min(rad, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function drawPlayer() {
+    const p = playerPos();
+    const moodT = g.mood / 100;
+    // glow
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(90,208,200,${0.18 - moodT * 0.1})`;
+    ctx.arc(p.x, p.y, p.r * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    const body = ctx.createRadialGradient(p.x - 3, p.y - 4, 2, p.x, p.y, p.r);
+    body.addColorStop(0, "#ffffff");
+    body.addColorStop(0.45, moodT > 0.65 ? "#ffb4a8" : "#9af0e8");
+    body.addColorStop(1, moodT > 0.65 ? "#e8453c" : "#2f9f98");
+    ctx.beginPath();
+    ctx.fillStyle = body;
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // eye
+    ctx.fillStyle = "#0c1220";
+    ctx.beginPath();
+    ctx.arc(p.x + 3, p.y - 2, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawParticles() {
+    for (const pt of g.particles) {
+      ctx.globalAlpha = Math.max(0, pt.life * 2);
+      ctx.fillStyle = pt.color;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function draw() {
+    ctx.save();
+    if (g.shake > 0) {
+      const mag = g.shake * 8;
+      ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
+    }
+    drawBackground();
+    if (state === "play" || state === "result") {
+      drawCorridor();
+      drawObstacles();
+      drawPlayer();
+      drawParticles();
+    } else {
+      // idle preview corridor
+      g.mood = 30 + Math.sin(performance.now() / 900) * 18;
+      drawCorridor();
+      const p = { x: W * 0.5, y: H * 0.62, r: 12 };
+      ctx.beginPath();
+      ctx.fillStyle = "#5ad0c8";
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (g.flash > 0) {
+      ctx.fillStyle = `rgba(232,69,60,${g.flash * 0.35})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+    ctx.restore();
+  }
+
+  function loop(ts) {
+    if (!last) last = ts;
+    let dt = (ts - last) / 1000;
+    last = ts;
+    dt = Math.min(0.033, dt);
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function breathe() {
+    if (state !== "play" || g.dead || g.breatheCd > 0) return;
+    g.breatheActive = 0.55;
+    g.breatheStacks += 1;
+    g.breatheCd = Math.min(2.4, 0.9 + g.breatheStacks * 0.25);
+    // overuse rebound: mood spike after calm
+    if (g.breatheStacks >= 3) {
+      setTimeout(() => {
+        if (state === "play" && !g.dead) g.mood = Math.min(100, g.mood + 18);
+      }, 600);
+      g.breatheStacks = 0;
+    }
+    burst(playerPos().x, playerPos().y, "#7ef0e6", 10);
+    updateBreatheLabel();
+  }
+
+  // input
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = true;
+    if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = true;
+    if (e.code === "Space" || e.code === "KeyW" || e.code === "ArrowUp") {
+      e.preventDefault();
+      if (state === "title") startGame();
+      else if (state === "result") startGame();
+      else breathe();
+    }
+    if (e.code === "Enter") {
+      if (state === "title" || state === "result") startGame();
+    }
+  });
+  window.addEventListener("keyup", (e) => {
+    if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = false;
+    if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
+  });
+
+  document.querySelectorAll(".touch-zone").forEach((zone) => {
+    const dir = Number(zone.dataset.dir);
+    const on = (e) => { e.preventDefault(); touchDir = dir; };
+    const off = (e) => { e.preventDefault(); if (touchDir === dir) touchDir = 0; };
+    zone.addEventListener("pointerdown", on);
+    zone.addEventListener("pointerup", off);
+    zone.addEventListener("pointercancel", off);
+    zone.addEventListener("pointerleave", off);
+  });
+
+  // swipe fallback on canvas area
+  let swipeX = null;
+  canvas.addEventListener("pointerdown", (e) => {
+    swipeX = e.clientX;
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (swipeX == null || state !== "play") return;
+    const dx = e.clientX - swipeX;
+    if (Math.abs(dx) > 12) {
+      touchDir = dx > 0 ? 1 : -1;
+      swipeX = e.clientX;
+    }
+  });
+  canvas.addEventListener("pointerup", () => { swipeX = null; touchDir = 0; });
+  canvas.addEventListener("pointercancel", () => { swipeX = null; touchDir = 0; });
+
+  document.querySelectorAll(".lang button, .lang-mini button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      lang = btn.dataset.lang;
+      localStorage.setItem("moodrush_lang", lang);
+      localStorage.setItem("ludofolio_lang", lang);
+      applyLang();
+    });
+  });
+
+  document.getElementById("startBtn").addEventListener("click", startGame);
+  document.getElementById("retryBtn").addEventListener("click", startGame);
+  breatheBtn.addEventListener("click", breathe);
+
+  window.addEventListener("resize", resize);
+  resize();
+  applyLang();
+  bestEl.textContent = String(best);
+  requestAnimationFrame(loop);
+})();
+  </script>
+</body>
+</html>
