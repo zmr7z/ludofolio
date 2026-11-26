@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Rule Stakes — ルール札（デモ）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #070b14;
+      --ink: #eef3fb;
+      --muted: #8b9bb8;
+      --calm: #5ad0c8;
+      --warn: #f0c14a;
+      --hot: #e8453c;
+      --panel: #121a2cee;
+      --line: #2a3a55;
+      --teal: #5ad0c8;
+      --gold: #f0c14a;
+      --rose: #e87a9a;
+      --violet: #9b8cff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Zen Kaku Gothic New", "Outfit", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, #1a3a58, transparent 55%),
+        radial-gradient(ellipse 40% 35% at 100% 80%, #2a1838, transparent 50%),
+        var(--bg);
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      user-select: none;
+    }
+    #app {
+      width: min(100%, 520px);
+      min-height: min(100dvh - 24px, 780px);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #0a101c;
+      box-shadow: 0 24px 80px #000a;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px 8px;
+      border-bottom: 1px solid #1e2a40;
+    }
+    .brand { font-family: Outfit, sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.04em; }
+    .brand small { display: block; color: var(--calm); font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 500; font-size: 11px; margin-top: 2px; letter-spacing: 0.1em; }
+    .hud { text-align: right; font-size: 12px; color: var(--muted); line-height: 1.55; }
+    .hud strong { color: var(--ink); font-weight: 700; }
+    .hud .goal { color: var(--warn); }
+    .rules {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      padding: 8px 12px;
+      min-height: 44px;
+      border-bottom: 1px solid #1e2a40;
+      background: #0c1422;
+    }
+    .rule-chip {
+      font-size: 11px;
+      padding: 5px 8px;
+      border-radius: 8px;
+      border: 1px solid #3a5a6a;
+      background: #142838;
+      color: var(--calm);
+      max-width: 100%;
+    }
+    .rule-chip.empty { color: var(--muted); border-style: dashed; background: transparent; }
+    .stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 12px 12px;
+      gap: 10px;
+    }
+    .scorebox {
+      text-align: center;
+      padding: 10px;
+      border-radius: 12px;
+      background: #101828;
+      border: 1px solid #243148;
+    }
+    .scorebox .label { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; }
+    .scorebox .num {
+      font-family: Outfit, sans-serif;
+      font-weight: 800;
+      font-size: 34px;
+      letter-spacing: 0.02em;
+      margin-top: 2px;
+    }
+    .scorebox .break { font-size: 12px; color: var(--muted); margin-top: 4px; min-height: 1.2em; }
+    .hand-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .hand-meta b { color: var(--ink); }
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      min-height: 118px;
+      align-content: center;
+    }
+    .card {
+      width: 64px;
+      height: 92px;
+      border-radius: 10px;
+      border: 2px solid #334;
+      background: linear-gradient(160deg, #1a2438, #101820);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s, box-shadow 0.12s;
+      position: relative;
+      font-family: Outfit, sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card.on {
+      transform: translateY(-14px);
+      border-color: #fff;
+      box-shadow: 0 8px 20px #0008, 0 0 0 1px #ffffff55;
+    }
+    .card .suit {
+      width: 14px; height: 14px; border-radius: 50%;
+      margin-top: 6px;
+    }
+    .card.teal { color: var(--teal); border-color: #2a6060; }
+    .card.gold { color: var(--gold); border-color: #6a5820; }
+    .card.rose { color: var(--rose); border-color: #6a3048; }
+    .card.violet { color: var(--violet); border-color: #4a4078; }
+    .card.teal .suit { background: var(--teal); }
+    .card.gold .suit { background: var(--gold); }
+    .card.rose .suit { background: var(--rose); }
+    .card.violet .suit { background: var(--violet); }
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: auto;
+    }
+    button.btn {
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 14px;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 10px;
+      cursor: pointer;
+      color: #071018;
+    }
+    button.btn:disabled { opacity: 0.35; cursor: default; }
+    .btn-play { background: var(--calm); }
+    .btn-discard { background: var(--warn); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line) !important;
+      grid-column: 1 / -1;
+    }
+    .overlay {
+      position: absolute; inset: 0;
+      background: #070b14f2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      gap: 12px;
+      z-index: 10;
+    }
+    .overlay.hidden { display: none; }
+    .overlay h1 {
+      font-family: Outfit, sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+    }
+    .overlay p { color: var(--muted); font-size: 14px; line-height: 1.65; max-width: 34em; }
+    .overlay .reason { color: var(--hot); font-weight: 700; min-height: 1.4em; }
+    .overlay .ok { color: var(--calm); font-weight: 700; }
+    .pick-row {
+      display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 360px;
+    }
+    .pick {
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #3a5a6a;
+      background: #142838;
+      color: var(--ink);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .pick:hover { border-color: var(--calm); }
+    .pick b { color: var(--calm); display: block; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="top">
+      <div class="brand">Rule Stakes<small>ルール札 · デモ</small></div>
+      <div class="hud">
+        <div>ブラインド <strong id="blindNum">1</strong> / 5</div>
+        <div>持ち点 <strong id="roundScore">0</strong> / <span class="goal" id="goalScore">50</span></div>
+        <div>プレイ <strong id="playsLeft">3</strong> · 捨て <strong id="discardsLeft">2</strong></div>
+      </div>
+    </div>
+    <div class="rules" id="rulesRow"></div>
+    <div class="stage" id="playStage">
+      <div class="scorebox">
+        <div class="label">この手の見込み</div>
+        <div class="num" id="previewScore">0</div>
+        <div class="break" id="previewBreak">カードを選んでプレイ</div>
+      </div>
+      <div class="hand-meta">
+        <span>役: <b id="handName">—</b></span>
+        <span>選択 <b id="selCount">0</b> / 5</span>
+      </div>
+      <div class="cards" id="hand"></div>
+      <div class="actions">
+        <button class="btn btn-play" id="btnPlay" type="button">プレイ</button>
+        <button class="btn btn-discard" id="btnDiscard" type="button">捨てる</button>
+        <button class="btn btn-ghost" id="btnGiveUp" type="button">あきらめて即リトライ</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="titleOv">
+      <h1>Rule Stakes</h1>
+      <p>手札と<strong style="color:var(--calm)">ルール札</strong>で点数の付き方を書き換え、短いブラインドを連続クリアするデモです。<br />戦闘はありません。読み違いと欲張りが敵です。</p>
+      <button class="btn btn-play" id="btnStart" type="button" style="width:min(100%,240px);margin-top:8px">はじめる</button>
+    </div>
+
+    <div class="overlay hidden" id="pickOv">
+      <h1>ルール札を1枚</h1>
+      <p>次のブラインドから効きます。点の付き方が変わるものだけ。</p>
+      <div class="pick-row" id="pickRow"></div>
+    </div>
+
+    <div class="overlay hidden" id="failOv">
+      <h1>ラン終了</h1>
+      <p class="reason" id="failReason"></p>
+      <p>同じ核でもう一回。</p>
+      <button class="btn btn-play" id="btnRetry" type="button" style="width:min(100%,240px)">即リトライ</button>
+    </div>
+
+    <div class="overlay hidden" id="winOv">
+      <h1>クリア</h1>
+      <p class="ok">5ブラインド突破。ルールの組み合わせがこのランの味でした。</p>
+      <button class="btn btn-play" id="btnAgain" type="button" style="width:min(100%,240px)">もう一ラン</button>
+    </div>
+  </div>
+
+  <script>
+    const COLORS = ["teal", "gold", "rose", "violet"];
+    const COLOR_JA = { teal: "青緑", gold: "黄", rose: "桃", violet: "紫" };
+    const GOALS = [40, 100, 220, 400, 700];
+    const HAND_BASE = {
+      high: { name: "ハイカード", chips: 8, mult: 1 },
+      pair: { name: "ペア", chips: 18, mult: 1.5 },
+      twoPair: { name: "ツーペア", chips: 28, mult: 2 },
+      three: { name: "スリーカード", chips: 40, mult: 2.5 },
+      straight: { name: "ストレート", chips: 50, mult: 3 },
+      flush: { name: "フラッシュ", chips: 55, mult: 3 },
+      full: { name: "フルハウス", chips: 70, mult: 3.5 },
+      four: { name: "フォーカード", chips: 90, mult: 4 },
+    };
+
+    const RULE_POOL = [
+      {
+        id: "flushBoost",
+        name: "同色倍",
+        desc: "すべて同色なら倍率×3",
+        apply(ctx) {
+          if (ctx.cards.length && ctx.cards.every((c) => c.color === ctx.cards[0].color)) {
+            ctx.mult *= 3;
+            ctx.notes.push("同色×3");
+          }
+        },
+      },
+      {
+        id: "evenOnly",
+        name: "偶数だけ",
+        desc: "偶数ランクの合計だけがチップになる",
+        apply(ctx) {
+          const sum = ctx.cards.filter((c) => c.rank % 2 === 0).reduce((a, c) => a + c.rank, 0);
+          ctx.chips = sum + HAND_BASE[ctx.handKey].chips * 0.35;
+          ctx.notes.push("偶数のみ");
+        },
+      },
+      {
+        id: "countMult",
+        name: "枚数倍",
+        desc: "出した枚数ぶん倍率を足す",
+        apply(ctx) {
+          ctx.mult += ctx.cards.length * 0.5;
+          ctx.notes.push("枚数+" + (ctx.cards.length * 0.5).toFixed(1));
+        },
+      },
+      {
+        id: "pairBless",
+        name: "ペア祝福",
+        desc: "ペア以上ならチップ+60",
+        apply(ctx) {
+          if (ctx.handKey !== "high") {
+            ctx.chips += 60;
+            ctx.notes.push("+60");
+          }
+        },
+      },
+      {
+        id: "discardFuel",
+        name: "捨て燃料",
+        desc: "このブラインドで使った捨て1回につき倍率+0.6",
+        apply(ctx) {
+          const n = ctx.discardsUsed;
+          if (n > 0) {
+            ctx.mult += n * 0.6;
+            ctx.notes.push("捨て×" + n);
+          }
+        },
+      },
+      {
+        id: "oddHalf",
+        name: "奇数半減",
+        desc: "奇数を1枚でも出したら最終点×0.5",
+        apply(ctx) {
+          if (ctx.cards.some((c) => c.rank % 2 === 1)) {
+            ctx.finalMul *= 0.5;
+            ctx.notes.push("奇数で半減");
+          }
+        },
+      },
+      {
+        id: "solo",
+        name: "一枚勝負",
+        desc: "ちょうど1枚だけ出したら倍率×5",
+        apply(ctx) {
+          if (ctx.cards.length === 1) {
+            ctx.mult *= 5;
+            ctx.notes.push("一枚×5");
+          }
+        },
+      },
+      {
+        id: "highMood",
+        name: "連勝きぶん",
+        desc: "連続クリア数×0.4を倍率に加算",
+        apply(ctx) {
+          if (ctx.streak > 0) {
+            ctx.mult += ctx.streak * 0.4;
+            ctx.notes.push("連勝+" + (ctx.streak * 0.4).toFixed(1));
+          }
+        },
+      },
+    ];
+
+    const state = {
+      blind: 0,
+      roundScore: 0,
+      plays: 3,
+      discards: 2,
+      discardsUsed: 0,
+      streak: 0,
+      deck: [],
+      hand: [],
+      selected: new Set(),
+      rules: [],
+      phase: "title",
+    };
+
+    const el = (id) => document.getElementById(id);
+
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = (Math.random() * (i + 1)) | 0;
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function makeDeck() {
+      const d = [];
+      for (const color of COLORS) {
+        for (let rank = 2; rank <= 10; rank++) d.push({ id: color + rank + Math.random(), rank, color });
+        d.push({ id: color + "A" + Math.random(), rank: 11, color }); // A
+      }
+      return shuffle(d);
+    }
+
+    function drawTo(n) {
+      while (state.hand.length < n && state.deck.length) state.hand.push(state.deck.pop());
+    }
+
+    function rankLabel(r) {
+      return r === 11 ? "A" : String(r);
+    }
+
+    function evaluateHand(cards) {
+      if (!cards.length) return { key: "high", ...HAND_BASE.high, chipAdd: 0 };
+      const ranks = cards.map((c) => c.rank).sort((a, b) => a - b);
+      const colors = cards.map((c) => c.color);
+      const count = {};
+      for (const r of ranks) count[r] = (count[r] || 0) + 1;
+      const counts = Object.values(count).sort((a, b) => b - a);
+      const flush = cards.length >= 4 && colors.every((c) => c === colors[0]);
+      let straight = false;
+      if (ranks.length >= 4) {
+        const uniq = [...new Set(ranks)];
+        if (uniq.length === ranks.length) {
+          straight = uniq[uniq.length - 1] - uniq[0] === uniq.length - 1;
+        }
+      }
+      let key = "high";
+      if (counts[0] >= 4) key = "four";
+      else if (counts[0] === 3 && counts[1] === 2) key = "full";
+      else if (flush && straight) key = "flush";
+      else if (flush) key = "flush";
+      else if (straight) key = "straight";
+      else if (counts[0] === 3) key = "three";
+      else if (counts[0] === 2 && counts[1] === 2) key = "twoPair";
+      else if (counts[0] === 2) key = "pair";
+      const base = HAND_BASE[key];
+      const chipAdd = ranks.reduce((a, r) => a + r, 0);
+      return { key, name: base.name, chips: base.chips, mult: base.mult, chipAdd };
+    }
+
+    function scoreSelection(cards) {
+      const ev = evaluateHand(cards);
+      const ctx = {
+        cards,
+        handKey: ev.key,
+        chips: ev.chips + ev.chipAdd,
+        mult: ev.mult,
+        finalMul: 1,
+        notes: [],
+        discardsUsed: state.discardsUsed,
+        streak: state.streak,
+      };
+      for (const rule of state.rules) rule.apply(ctx);
+      const total = Math.floor(ctx.chips * ctx.mult * ctx.finalMul);
+      return { ...ev, total, notes: ctx.notes, chips: ctx.chips, mult: ctx.mult * ctx.finalMul };
+    }
+
+    function selectedCards() {
+      return state.hand.filter((_, i) => state.selected.has(i));
+    }
+
+    function renderRules() {
+      const row = el("rulesRow");
+      if (!state.rules.length) {
+        row.innerHTML = '<span class="rule-chip empty">ルール札なし — クリア後に選べます</span>';
+        return;
+      }
+      row.innerHTML = state.rules
+        .map((r) => `<span class="rule-chip" title="${r.desc}"><b>${r.name}</b> · ${r.desc}</span>`)
+        .join("");
+    }
+
+    function renderHand() {
+      const box = el("hand");
+      box.innerHTML = "";
+      state.hand.forEach((c, i) => {
+        const d = document.createElement("button");
+        d.type = "button";
+        d.className = "card " + c.color + (state.selected.has(i) ? " on" : "");
+        d.innerHTML = `<span>${rankLabel(c.rank)}</span><span class="suit"></span>`;
+        d.addEventListener("click", () => toggleSel(i));
+        box.appendChild(d);
+      });
+      updatePreview();
+      el("playsLeft").textContent = state.plays;
+      el("discardsLeft").textContent = state.discards;
+      el("blindNum").textContent = state.blind + 1;
+      el("roundScore").textContent = state.roundScore;
+      el("goalScore").textContent = GOALS[state.blind];
+      el("btnPlay").disabled = state.selected.size === 0 || state.plays <= 0;
+      el("btnDiscard").disabled = state.selected.size === 0 || state.discards <= 0;
+    }
+
+    function toggleSel(i) {
+      if (state.selected.has(i)) state.selected.delete(i);
+      else {
+        if (state.selected.size >= 5) return;
+        state.selected.add(i);
+      }
+      renderHand();
+    }
+
+    function updatePreview() {
+      const cards = selectedCards();
+      el("selCount").textContent = cards.length;
+      if (!cards.length) {
+        el("previewScore").textContent = "0";
+        el("handName").textContent = "—";
+        el("previewBreak").textContent = "カードを選んでプレイ";
+        return;
+      }
+      const s = scoreSelection(cards);
+      el("previewScore").textContent = s.total;
+      el("handName").textContent = s.name;
+      el("previewBreak").textContent =
+        Math.round(s.chips) + " × " + s.mult.toFixed(2) + (s.notes.length ? "（" + s.notes.join(" · ") + "）" : "");
+    }
+
+    function hideAllOverlays() {
+      ["titleOv", "pickOv", "failOv", "winOv"].forEach((id) => el(id).classList.add("hidden"));
+    }
+
+    function startRun() {
+      state.blind = 0;
+      state.streak = 0;
+      state.rules = [];
+      // demo: start with one random rule so first blind already teaches the hook
+      state.rules.push(RULE_POOL[(Math.random() * RULE_POOL.length) | 0]);
+      hideAllOverlays();
+      startBlind();
+    }
+
+    function startBlind() {
+      state.roundScore = 0;
+      state.plays = 3;
+      state.discards = 2;
+      state.discardsUsed = 0;
+      state.deck = makeDeck();
+      state.hand = [];
+      state.selected.clear();
+      drawTo(8);
+      renderRules();
+      renderHand();
+    }
+
+    function removeSelectedFromHand() {
+      const keep = [];
+      state.hand.forEach((c, i) => {
+        if (!state.selected.has(i)) keep.push(c);
+      });
+      state.hand = keep;
+      state.selected.clear();
+    }
+
+    function doPlay() {
+      if (state.plays <= 0 || state.selected.size === 0) return;
+      const cards = selectedCards();
+      const s = scoreSelection(cards);
+      state.roundScore += s.total;
+      state.plays -= 1;
+      removeSelectedFromHand();
+      drawTo(8);
+      renderHand();
+      if (state.roundScore >= GOALS[state.blind]) {
+        onBlindClear();
+        return;
+      }
+      if (state.plays <= 0) {
+        fail("目標点に届きませんでした（" + state.roundScore + " / " + GOALS[state.blind] + "）");
+      }
+    }
+
+    function doDiscard() {
+      if (state.discards <= 0 || state.selected.size === 0) return;
+      state.discards -= 1;
+      state.discardsUsed += 1;
+      removeSelectedFromHand();
+      drawTo(8);
+      renderHand();
+    }
+
+    function onBlindClear() {
+      state.streak += 1;
+      if (state.blind >= GOALS.length - 1) {
+        hideAllOverlays();
+        el("winOv").classList.remove("hidden");
+        return;
+      }
+      showPick();
+    }
+
+    function showPick() {
+      const owned = new Set(state.rules.map((r) => r.id));
+      let pool = RULE_POOL.filter((r) => !owned.has(r.id));
+      if (pool.length < 3) pool = RULE_POOL.slice();
+      shuffle(pool);
+      const choices = pool.slice(0, 3);
+      const row = el("pickRow");
+      row.innerHTML = "";
+      choices.forEach((r) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "pick";
+        b.innerHTML = `<b>${r.name}</b>${r.desc}`;
+        b.addEventListener("click", () => {
+          state.rules.push(r);
+          state.blind += 1;
+          hideAllOverlays();
+          startBlind();
+        });
+        row.appendChild(b);
+      });
+      hideAllOverlays();
+      el("pickOv").classList.remove("hidden");
+    }
+
+    function fail(reason) {
+      el("failReason").textContent = reason;
+      hideAllOverlays();
+      el("failOv").classList.remove("hidden");
+    }
+
+    el("btnStart").addEventListener("click", startRun);
+    el("btnRetry").addEventListener("click", startRun);
+    el("btnAgain").addEventListener("click", startRun);
+    el("btnPlay").addEventListener("click", doPlay);
+    el("btnDiscard").addEventListener("click", doDiscard);
+    el("btnGiveUp").addEventListener("click", () => fail("あきらめた"));
+
+    renderRules();
+  </script>
+</body>
+</html>
