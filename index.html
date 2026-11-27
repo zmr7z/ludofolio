@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ludofolio — browser games</title>
-  <meta name="description" content="Ludofolio — short original browser games. Mood Rush and Mood Rush Relics." />
+  <meta name="description" content="Ludofolio — すぐ遊べる短いオリジナルのブラウザゲーム。Mood Rush、YEET便など。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
@@ -49,6 +49,12 @@
       align-items: center;
       gap: 12px;
     }
+    .nav-links {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      font-size: 13px;
+    }
+    .nav-links a { color: var(--muted); text-decoration: none; }
+    .nav-links a:hover { color: var(--ink); }
     .lang {
       display: flex; gap: 4px;
       border: 1px solid var(--line);
@@ -136,6 +142,7 @@
       font-weight: 700;
       margin-bottom: 14px;
     }
+    .games { display: grid; gap: 14px; }
     .game {
       display: grid;
       grid-template-columns: 1.2fr 1fr;
@@ -178,6 +185,24 @@
     }
     .gate.a { top: 28%; left: 8%; animation: fall 2.4s linear infinite; }
     .gate.b { top: 12%; right: 10%; width: 30%; background: linear-gradient(180deg, #ff6b5a, #a82828); animation: fall 2.4s linear 0.8s infinite; }
+    .parcel {
+      position: absolute;
+      width: 36px; height: 36px;
+      border: 2px solid #1a1208;
+      background: #e8a317;
+      box-shadow: 4px 5px 0 #0006;
+      animation: float 2.6s ease-in-out infinite;
+    }
+    .parcel.x { left: 22%; top: 30%; transform: rotate(-14deg); }
+    .parcel.y { right: 24%; top: 42%; width: 28px; height: 28px; background: #c45c26; animation-delay: 0.4s; }
+    .truck {
+      position: absolute;
+      right: 14%; bottom: 22%;
+      width: 72px; height: 36px;
+      border-radius: 6px;
+      background: #2f6b2a;
+      box-shadow: inset 0 -8px 0 #245520;
+    }
     .meta { padding: 22px 22px 24px; display: grid; align-content: center; gap: 10px; }
     .meta .tag {
       font-family: "Outfit", sans-serif;
@@ -205,6 +230,42 @@
       font-size: 13px;
       line-height: 1.6;
     }
+    .read-list { display: grid; gap: 10px; }
+    .read-item {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      padding: 14px 0;
+      border-bottom: 1px solid #1a2740;
+    }
+    .read-item:hover h3 { color: var(--accent); }
+    .read-item .tag {
+      font-family: "Outfit", sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .read-item h3 {
+      font-family: "Outfit", sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .read-item p { color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .ad-slot {
+      margin-top: 28px;
+      min-height: 90px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #66779088;
+      font-family: "Outfit", sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+    }
     .foot {
       margin-top: auto;
       padding-top: 36px;
@@ -212,6 +273,12 @@
       font-size: 12px;
       letter-spacing: 0.04em;
     }
+    .foot-nav {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 10px;
+    }
+    .foot-nav a { color: #667790; text-decoration: none; }
+    .foot-nav a:hover { color: var(--accent); }
     @keyframes rise {
       from { opacity: 0; transform: translateY(14px); }
       to { opacity: 1; transform: translateY(0); }
@@ -236,7 +303,11 @@
   <div class="noise" aria-hidden="true"></div>
   <div class="shell">
     <div class="nav">
-      <div aria-hidden="true"></div>
+      <div class="nav-links">
+        <a href="#now" id="navPlay">遊ぶ</a>
+        <a href="#read" id="navRead">読む</a>
+        <a href="about.html" id="navAbout">運営</a>
+      </div>
       <div class="lang" aria-label="language">
         <button type="button" data-lang="ja" class="on">JA</button>
         <button type="button" data-lang="en">EN</button>
@@ -245,7 +316,7 @@
 
     <header class="hero">
       <h1 class="brand">Ludofolio<span id="brandSub">遊びの作品集</span></h1>
-      <p class="lead" id="lead">短いオリジナルゲームを並べる場所。きぶんランと、その遺物版。</p>
+      <p class="lead" id="lead">すぐ開いて遊べる、短いオリジナルのブラウザゲーム置き場。</p>
       <div class="cta">
         <a class="btn btn-main" href="games/mood-rush-relics.html" id="ctaPlay">Relics を遊ぶ</a>
         <a class="btn btn-ghost" href="#now" id="ctaMore">公開中の作品</a>
@@ -254,78 +325,141 @@
 
     <section class="stage" id="now">
       <h2 id="nowLabel">公開中</h2>
-      <div class="games" style="display:grid;gap:14px">
-      <a class="game" href="games/mood-rush-relics.html">
-        <div class="preview" aria-hidden="true" style="background:radial-gradient(circle at 50% 70%, #c9b6ff44, transparent 40%),linear-gradient(180deg,#152038,#0a101c)">
-          <div class="gate a"></div>
-          <div class="gate b" style="filter:hue-rotate(40deg)"></div>
-          <div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,#c9b6ff 45%,#6a4aaa)"></div>
-        </div>
-        <div class="meta">
-          <div class="tag">ORIGINAL · RUN + RELICS</div>
-          <h3>Mood Rush Relics<small id="gameSub2">遺物ラン</small></h3>
-          <p id="gameDesc2">選ぶと走り方が変わる。死んだら遺物リセット。</p>
-        </div>
-      </a>
-      <a class="game" href="games/mood-rush.html">
-        <div class="preview" aria-hidden="true">
-          <div class="gate a"></div>
-          <div class="gate b"></div>
-          <div class="orb"></div>
-        </div>
-        <div class="meta">
-          <div class="tag">ORIGINAL · SHORT RUN</div>
-          <h3>Mood Rush<small id="gameSub">きぶんラン</small></h3>
-          <p id="gameDesc">焦るほど道が狭くなる。深呼吸で落ち着いて、ベストを抜け。</p>
-        </div>
-      </a>
+      <div class="games">
+        <a class="game" href="play/yeetbin.html">
+          <div class="preview" aria-hidden="true" style="background:radial-gradient(circle at 40% 30%, #e8a31755, transparent 42%),linear-gradient(180deg,#3a2718,#120c08)">
+            <div class="parcel x"></div>
+            <div class="parcel y"></div>
+            <div class="truck"></div>
+          </div>
+          <div class="meta">
+            <div class="tag">PHYSICS · MOBILE</div>
+            <h3>YEET便<small id="gameSub3">ぶっ飛び宅配</small></h3>
+            <p id="gameDesc3">荷物をフリックしてトラックへ。物理が礼儀を知らない。</p>
+          </div>
+        </a>
+        <a class="game" href="games/mood-rush-relics.html">
+          <div class="preview" aria-hidden="true" style="background:radial-gradient(circle at 50% 70%, #c9b6ff44, transparent 40%),linear-gradient(180deg,#152038,#0a101c)">
+            <div class="gate a"></div>
+            <div class="gate b" style="filter:hue-rotate(40deg)"></div>
+            <div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,#c9b6ff 45%,#6a4aaa)"></div>
+          </div>
+          <div class="meta">
+            <div class="tag">ORIGINAL · RUN + RELICS</div>
+            <h3>Mood Rush Relics<small id="gameSub2">遺物ラン</small></h3>
+            <p id="gameDesc2">選ぶと走り方が変わる。死んだら遺物リセット。</p>
+          </div>
+        </a>
+        <a class="game" href="games/mood-rush.html">
+          <div class="preview" aria-hidden="true">
+            <div class="gate a"></div>
+            <div class="gate b"></div>
+            <div class="orb"></div>
+          </div>
+          <div class="meta">
+            <div class="tag">ORIGINAL · SHORT RUN</div>
+            <h3>Mood Rush<small id="gameSub">きぶんラン</small></h3>
+            <p id="gameDesc">焦るほど道が狭くなる。深呼吸で落ち着いて、ベストを抜け。</p>
+          </div>
+        </a>
       </div>
     </section>
 
-    <footer class="foot" id="foot">© Ludofolio · original games only</footer>
+    <section class="stage" id="read">
+      <h2 id="readLabel">読む</h2>
+      <div class="read-list">
+        <a class="read-item" href="articles/yeetbin-made.html">
+          <div class="tag" id="readMeta1">制作メモ</div>
+          <h3 id="readTitle1">YEET便をブラウザだけで出した理由</h3>
+          <p id="readDesc1">Xのリンクから即プレイできる形にした話。</p>
+        </a>
+        <a class="read-item" href="https://note.com/ludofolio/n/n3752320d7f3a" rel="noopener" target="_blank">
+          <div class="tag">note · PixelForge</div>
+          <h3 id="readTitle2">AIにJSONで指示できるアセット用ツール</h3>
+          <p id="readDesc2">外部の長めの記事。</p>
+        </a>
+      </div>
+      <div class="ad-slot" aria-hidden="true">AD SLOT</div>
+    </section>
+
+    <footer class="foot">
+      <div class="foot-nav">
+        <a href="about.html" id="footAbout">運営者情報</a>
+        <a href="privacy.html" id="footPrivacy">プライバシー</a>
+        <a href="https://note.com/ludofolio" rel="noopener" target="_blank">note</a>
+      </div>
+      <div id="foot">© Ludofolio</div>
+    </footer>
   </div>
 
   <script>
     const I18N = {
       ja: {
         brandSub: "遊びの作品集",
-        lead: "短いオリジナルゲームを並べる場所。きぶんランと、その遺物版。",
+        lead: "すぐ開いて遊べる、短いオリジナルのブラウザゲーム置き場。",
         ctaPlay: "Relics を遊ぶ",
         ctaMore: "公開中の作品",
         nowLabel: "公開中",
+        readLabel: "読む",
+        navPlay: "遊ぶ",
+        navRead: "読む",
+        navAbout: "運営",
         gameSub: "きぶんラン",
         gameDesc: "焦るほど道が狭くなる。深呼吸で落ち着いて、ベストを抜け。",
         gameSub2: "遺物ラン",
         gameDesc2: "選ぶと走り方が変わる。死んだら遺物リセット。",
-        foot: "© Ludofolio · オリジナルのみ掲載",
+        gameSub3: "ぶっ飛び宅配",
+        gameDesc3: "荷物をフリックしてトラックへ。物理が礼儀を知らない。",
+        readMeta1: "制作メモ",
+        readTitle1: "YEET便をブラウザだけで出した理由",
+        readDesc1: "Xのリンクから即プレイできる形にした話。",
+        readTitle2: "AIにJSONで指示できるアセット用ツール",
+        readDesc2: "外部の長めの記事。",
+        footAbout: "運営者情報",
+        footPrivacy: "プライバシー",
+        foot: "© Ludofolio · オリジナルゲームと制作メモ",
       },
       en: {
         brandSub: "A FOLIO OF PLAY",
-        lead: "Short original browser games — Mood Rush and its relic sequel.",
+        lead: "Short original browser games you can open and play instantly.",
         ctaPlay: "Play Relics",
         ctaMore: "Now playing",
         nowLabel: "NOW PLAYING",
+        readLabel: "READ",
+        navPlay: "Play",
+        navRead: "Read",
+        navAbout: "About",
         gameSub: "MOOD RUN",
         gameDesc: "Panic shrinks the path. Breathe, weave near-misses, beat your best.",
         gameSub2: "RELIC RUN",
         gameDesc2: "Relics rewrite the run. Death clears them — try another mix.",
-        foot: "© Ludofolio · original games only",
+        gameSub3: "YEET DELIVERY",
+        gameDesc3: "Flick packages into the truck. Physics has no manners.",
+        readMeta1: "DEV NOTE",
+        readTitle1: "Why YEET便 shipped as a browser link",
+        readDesc1: "Tap from X, play on phone — no install.",
+        readTitle2: "A tiny asset tool driven by JSON",
+        readDesc2: "Longer write-up on note.",
+        footAbout: "About",
+        footPrivacy: "Privacy",
+        foot: "© Ludofolio · original games & notes",
       },
     };
-    let lang = localStorage.getItem("ludofolio_lang") || localStorage.getItem("moodrush_lang") || localStorage.getItem("pulselab_lang") || "ja";
+    let lang = localStorage.getItem("ludofolio_lang") || localStorage.getItem("moodrush_lang") || "ja";
+    const ids = [
+      "brandSub","lead","ctaPlay","ctaMore","nowLabel","readLabel",
+      "navPlay","navRead","navAbout",
+      "gameSub","gameDesc","gameSub2","gameDesc2","gameSub3","gameDesc3",
+      "readMeta1","readTitle1","readDesc1","readTitle2","readDesc2",
+      "footAbout","footPrivacy","foot"
+    ];
     function apply() {
       const t = I18N[lang] || I18N.ja;
       document.documentElement.lang = lang;
-      brandSub.textContent = t.brandSub;
-      lead.textContent = t.lead;
-      ctaPlay.textContent = t.ctaPlay;
-      ctaMore.textContent = t.ctaMore;
-      nowLabel.textContent = t.nowLabel;
-      gameSub.textContent = t.gameSub;
-      gameDesc.textContent = t.gameDesc;
-      gameSub2.textContent = t.gameSub2;
-      gameDesc2.textContent = t.gameDesc2;
-      foot.textContent = t.foot;
+      ids.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && t[id] != null) el.textContent = t[id];
+      });
       document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
     }
     document.querySelectorAll(".lang button").forEach((btn) => {
