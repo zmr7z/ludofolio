@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="description" content="めんこ・オブ・シェイク — 振る／振り回してめんこをひっくり返せ。" />
   <title>めんこ・オブ・シェイクを遊ぶ — ludofolio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -10,35 +10,54 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/site.css" />
   <style>
-    .play-shell {
-      padding: 0.5rem 0 1rem;
+    html, body {
+      height: 100%;
+      overflow: hidden;
     }
-    .play-bar {
+    .play-shell {
+      height: 100%;
+      min-height: 100dvh;
+      padding: max(8px, env(safe-area-inset-top)) 12px calc(8px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      box-sizing: border-box;
+    }
+    .play-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
+      gap: 8px;
+      min-width: 0;
+    }
+    .play-top .logo {
+      font-size: 0.95rem;
+    }
+    .play-top .links {
+      display: flex;
+      gap: 10px;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
-    .play-bar h1 {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: 1.15rem;
-      letter-spacing: -0.02em;
+    .play-top a {
+      color: var(--mute, #8b9bb8);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
     }
+    .play-top a:hover { color: var(--ink, #eef3fb); }
     .frame-wrap {
       position: relative;
       width: 100%;
       max-width: 480px;
       margin: 0 auto;
-      aspect-ratio: 9 / 16;
-      max-height: min(82svh, 820px);
-      border-radius: 18px;
+      min-height: 0;
+      height: 100%;
+      border-radius: 16px;
       overflow: hidden;
-      border: 1px solid var(--line);
+      border: 1px solid var(--line, #243148);
       background: #111827;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
     }
     .frame-wrap iframe {
       position: absolute;
@@ -48,27 +67,40 @@
       border: 0;
     }
     .play-note {
-      max-width: 480px;
-      margin: 1rem auto 0;
-      color: var(--mute);
-      font-size: 0.92rem;
+      margin: 0;
+      color: var(--mute, #8b9bb8);
+      font-size: 0.75rem;
       text-align: center;
+    }
+    .play-note a { color: inherit; }
+    @media (max-width: 700px) {
+      .play-shell {
+        padding: max(6px, env(safe-area-inset-top)) 0 0;
+        gap: 0;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+      .play-top {
+        padding: 0 12px 6px;
+      }
+      .frame-wrap {
+        max-width: none;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+      }
+      .play-note { display: none; }
     }
   </style>
 </head>
 <body>
   <div class="wrap play-shell">
-    <header class="site-header">
+    <div class="play-top">
       <a class="logo" href="../">ludo<span>folio</span></a>
-      <nav class="nav">
-        <a href="https://zmr7z.github.io/menko/" rel="noopener" target="_blank">単独ページ</a>
-        <a href="https://zmr7z.github.io/menko/changelog.html" rel="noopener" target="_blank">更新履歴</a>
-      </nav>
-    </header>
-
-    <div class="play-bar">
-      <h1>めんこ・オブ・シェイク</h1>
-      <a class="btn btn-ghost" href="../">サイトへ戻る</a>
+      <div class="links">
+        <a href="../">戻る</a>
+        <a href="https://zmr7z.github.io/menko/" rel="noopener" target="_blank">単独</a>
+      </div>
     </div>
 
     <div class="frame-wrap">
@@ -80,15 +112,6 @@
       ></iframe>
     </div>
     <p class="play-note">うまく動かないときは <a href="https://zmr7z.github.io/menko/" rel="noopener" target="_blank">単独ページ</a> を開いてください。</p>
-
-    <div class="ad-slot" data-ad-slot="play-below" aria-hidden="true">AD SLOT</div>
-
-    <footer class="site-footer">
-      <nav>
-        <a href="../privacy.html">プライバシー</a>
-        <a href="../about.html">運営</a>
-      </nav>
-    </footer>
   </div>
 </body>
 </html>
