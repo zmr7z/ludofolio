@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ludofolio — browser games</title>
-  <meta name="description" content="Ludofolio — すぐ遊べる短いオリジナルのブラウザゲーム。Mood Rush、YEET便など。" />
+  <meta name="description" content="Ludofolio — すぐ遊べる短いオリジナルのブラウザゲーム。めんこ・オブ・シェイク、YEET便、Mood Rushなど。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
@@ -203,6 +203,31 @@
       background: #2f6b2a;
       box-shadow: inset 0 -8px 0 #245520;
     }
+    .menko {
+      position: absolute;
+      width: 52px; height: 72px;
+      border-radius: 8px;
+      border: 2px solid #0b1220;
+      box-shadow: 4px 6px 0 #0005;
+      display: grid;
+      place-items: center;
+      font-family: "Outfit", sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: #0b1220;
+    }
+    .menko.you {
+      left: 28%; top: 34%;
+      background: linear-gradient(160deg, #fbbf24, #f59e0b);
+      transform: rotate(-12deg);
+      animation: float 2.4s ease-in-out infinite;
+    }
+    .menko.foe {
+      right: 26%; top: 28%;
+      background: linear-gradient(160deg, #7dd3fc, #38bdf8);
+      transform: rotate(10deg);
+      animation: float 2.4s ease-in-out 0.35s infinite;
+    }
     .meta { padding: 22px 22px 24px; display: grid; align-content: center; gap: 10px; }
     .meta .tag {
       font-family: "Outfit", sans-serif;
@@ -326,6 +351,17 @@
     <section class="stage" id="now">
       <h2 id="nowLabel">公開中</h2>
       <div class="games">
+        <a class="game" href="play/menko.html">
+          <div class="preview" aria-hidden="true" style="background:radial-gradient(circle at 50% -10%, #1e3a5f 0%, transparent 50%),linear-gradient(180deg,#1f2937,#111827)">
+            <div class="menko you">自</div>
+            <div class="menko foe">敵</div>
+          </div>
+          <div class="meta">
+            <div class="tag">SHAKE · PHONE + PC</div>
+            <h3>めんこ・オブ・シェイク<small id="gameSub4">振るめんこ</small></h3>
+            <p id="gameDesc4">スマホは振る、PCはマウス振り回し。1回失敗でアウト。</p>
+          </div>
+        </a>
         <a class="game" href="play/yeetbin.html">
           <div class="preview" aria-hidden="true" style="background:radial-gradient(circle at 40% 30%, #e8a31755, transparent 42%),linear-gradient(180deg,#3a2718,#120c08)">
             <div class="parcel x"></div>
@@ -411,6 +447,8 @@
         gameDesc2: "選ぶと走り方が変わる。死んだら遺物リセット。",
         gameSub3: "ぶっ飛び宅配",
         gameDesc3: "荷物をフリックしてトラックへ。物理が礼儀を知らない。",
+        gameSub4: "振るめんこ",
+        gameDesc4: "スマホは振る、PCはマウス振り回し。1回失敗でアウト。",
         readMeta1: "制作メモ",
         readTitle1: "YEET便をブラウザだけで出した理由",
         readDesc1: "Xのリンクから即プレイできる形にした話。",
@@ -437,6 +475,8 @@
         gameDesc2: "Relics rewrite the run. Death clears them — try another mix.",
         gameSub3: "YEET DELIVERY",
         gameDesc3: "Flick packages into the truck. Physics has no manners.",
+        gameSub4: "SHAKE MENKO",
+        gameDesc4: "Shake the phone or whip the mouse. One miss ends the run.",
         readMeta1: "DEV NOTE",
         readTitle1: "Why YEET便 shipped as a browser link",
         readDesc1: "Tap from X, play on phone — no install.",
@@ -452,7 +492,7 @@
     const ids = [
       "brandSub","lead","ctaPlay","ctaMore","nowLabel","readLabel",
       "navPlay","navRead","navAbout",
-      "gameSub","gameDesc","gameSub2","gameDesc2","gameSub3","gameDesc3",
+      "gameSub","gameDesc","gameSub2","gameDesc2","gameSub3","gameDesc3","gameSub4","gameDesc4",
       "readMeta1","readTitle1","readDesc1","readTitle2","readDesc2",
       "footAbout","footPrivacy","footUpdates","foot"
     ];
