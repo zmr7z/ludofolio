@@ -4,38 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>更新履歴 — Mood Rush</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet" />
-  <style>
-    :root { --bg:#070b14; --ink:#eef3fb; --muted:#8b9bb8; --accent:#5ad0c8; --line:#243148; }
-    body { margin:0; font-family:"Zen Kaku Gothic New",sans-serif; color:var(--ink); background:var(--bg); line-height:1.65; }
-    .wrap { width:min(720px, calc(100% - 32px)); margin:0 auto; padding:28px 0 64px; }
-    a { color:var(--accent); }
-    h1 { font-family:Outfit,sans-serif; font-size:1.8rem; margin:8px 0 16px; }
-    h2 { font-family:Outfit,sans-serif; font-size:1.1rem; margin:0 0 8px; }
-    .entry { border-top:1px solid var(--line); padding:18px 0; }
-    .date { color:var(--muted); font-size:0.85rem; }
-    ul { color:var(--muted); }
-  </style>
+  <link rel="stylesheet" href="../css/changelog.css" />
 </head>
 <body>
-  <div class="wrap">
-    <p class="date">Ludofolio</p>
-    <h1>Mood Rush 更新履歴</h1>
-    <p><a href="mood-rush.html">← ゲームに戻る</a> · <a href="../">ハブ</a></p>
-    <article class="entry">
-      <p class="date">2026-11-27</p>
-      <h2>履歴ページ追加</h2>
-      <ul>
-        <li>各ゲームで更新を追えるように changelog を設置</li>
-      </ul>
-    </article>
-    <article class="entry">
-      <p class="date">公開時</p>
-      <h2>初公開</h2>
-      <ul>
-        <li>焦るほど道が狭くなる短尺ラン</li>
-      </ul>
-    </article>
-  </div>
+  <main class="page">
+    <a class="back" href="mood-rush.html">← Mood Rush に戻る</a>
+    <p class="kicker">Ludofolio</p>
+    <h1>Mood Rush<br />更新履歴</h1>
+    <p class="intro">新しい順。短いメモだけ載せてます。</p>
+
+    <ol class="timeline">
+      <li class="release">
+        <div class="meta">
+          <span class="ver">docs</span>
+          <time datetime="2026-11-27">2026.11.27</time>
+        </div>
+        <h2>履歴ページ追加</h2>
+        <ul>
+          <li>更新内容をここへ追記していく運用に変更</li>
+        </ul>
+      </li>
+      <li class="release">
+        <div class="meta">
+          <span class="ver">v1</span>
+          <time>公開時</time>
+        </div>
+        <h2>初公開</h2>
+        <ul>
+          <li>焦るほど道が狭くなる短尺ラン</li>
+        </ul>
+      </li>
+    </ol>
+
+    <p class="intro" style="margin-top:1.5rem"><a class="back" href="../updates.html">全ゲームの更新一覧</a></p>
+  </main>
 </body>
 </html>
