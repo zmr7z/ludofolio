@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="ブラウザだけでYEET便を公開した理由。Xのリンクからスマホですぐ遊べるようにした制作メモ。" />
+  <title>YEET便をブラウザだけで出した理由 — ludofolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/site.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <a class="logo" href="../">ludo<span>folio</span></a>
+      <nav class="nav">
+        <a href="../play/yeetbin.html">遊ぶ</a>
+        <a href="../">トップ</a>
+      </nav>
+    </header>
+
+    <main class="prose" style="padding: 2rem 0 3rem">
+      <p class="section-kicker">制作メモ · 2026-11-27</p>
+      <h1>YEET便をブラウザだけで出した理由</h1>
+      <p>アプリを入れてもらう前に、まず一回触ってもらいたい。そのための最短経路が「Xの投稿をタップ → そのまま遊べる」だった。</p>
+
+      <h2>ストアより先に、リンク</h2>
+      <p>インストールの壁は想像以上に高い。とくにバカゲーは「30秒でわかるかどうか」がすべてに近い。だから <strong>HTML + 物理エンジン（Matter.js）</strong> の一式を GitHub Pages に置き、スマホの縦画面前提で操作をフリックだけにした。</p>
+
+      <h2>ルールは故意に雑</h2>
+      <p>荷物をつまんで飛ばし、トラックの荷台（センサー）に入れたら加点。反発や回転を少し盛って、意図どおりに飛ばない感じを残している。上手くなった実感より、「物理が暴れての面白い」を優先した。</p>
+
+      <h2>なぜサイトの中に置くか</h2>
+      <p>単体のゲームURLだけだと、遊んだあと行き先がない。ludofolio 側にトップ・運営情報・プライバシー・制作メモをまとめておくと、</p>
+      <ul>
+        <li>次の作品への導線が作れる</li>
+        <li>広告や解析を入れるときの体裁が揃う</li>
+        <li>「誰が何をしているサイトか」が説明できる</li>
+      </ul>
+      <p>という実務的な利点がある。収益化はアクセスが先。中身のあるページを増やしつつ、遊べる入口は常に目立たせる方針。</p>
+
+      <h2>今すぐ遊ぶ</h2>
+      <p><a href="../play/yeetbin.html">ぶっ飛び宅配 YEET便</a> — 30秒、荷物をぶち込め。</p>
+
+      <div class="ad-slot" data-ad-slot="article-bottom" aria-hidden="true">AD SLOT</div>
+    </main>
+
+    <footer class="site-footer">
+      <nav>
+        <a href="../">トップ</a>
+        <a href="../privacy.html">プライバシー</a>
+        <a href="../about.html">運営</a>
+      </nav>
+      <p>© ludofolio</p>
+    </footer>
+  </div>
+</body>
+</html>
